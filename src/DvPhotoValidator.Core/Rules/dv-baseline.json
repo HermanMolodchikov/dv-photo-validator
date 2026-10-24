@@ -1,0 +1,30 @@
+// Базовый профиль требований DV Lottery.
+// Перед релизом сверьте значения с официальной инструкцией на текущий год
+// и заполните programYear и verifiedOn (см. docs/rules-update.md).
+{
+  "id": "dv-baseline",
+  "name": "DV Lottery — базовый профиль",
+  "rulesVersion": "1.0",
+  "programYear": null,
+  "verifiedOn": null,
+
+  "exportSize": 600,
+  "minSize": 600,
+  "maxSize": 1200,
+  "maxFileBytes": 245760,
+
+  "headMinRatio": 0.50,
+  "headMaxRatio": 0.69,
+  "eyeMinRatio": 0.56,
+  "eyeMaxRatio": 0.69,
+
+  "maxPhotoAgeMonths": 6,
+  "maxJpegQuality": 95,
+  "minAcceptableJpegQuality": 70,
+
+  "sources": [
+    "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos.html",
+    "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos/digital-image-requirements.html",
+    "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos/photo-examples.html"
+  ]
+}
