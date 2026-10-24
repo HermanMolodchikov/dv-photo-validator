@@ -96,7 +96,8 @@ public sealed class UiSmokeTests
         Assert.True(vm.HasImage, vm.StatusText);
         Assert.Contains(vm.SourceGroup.Items, i => i.RuleId == "FILE_FORMAT");
         Assert.Contains(vm.FrameGroup.Items, i => i.RuleId == HeadGeometryValidator.HeadHeightId && i.Status != ValidationStatus.ManualReview);
-        Assert.Contains(vm.FrameGroup.Items, i => i.RuleId == "PHOTO_AGE" && i.Status == ValidationStatus.Pass);
+        // A capture date within the allowed age needs no attention, so it is not listed.
+        Assert.DoesNotContain(vm.FrameGroup.Items, i => i.RuleId == "PHOTO_AGE");
 
         var root = (FrameworkElement)window.Content;
         var size = new Size(1280, 820);

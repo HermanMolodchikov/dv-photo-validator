@@ -174,15 +174,17 @@ public sealed class PhotoAgeRule : IValidationRule
             yield break;
         }
 
-        var months = (context.Now - taken).TotalDays / 30.44;
+        // Reported only when the date does not fit; a suitable date needs no attention.
+        if (taken >= context.Now.AddMonths(-profile.MaxPhotoAgeMonths))
+        {
+            yield break;
+        }
+
         // Metadata dates can be wrong, so an old date is a warning rather than a hard failure.
-        yield return taken >= context.Now.AddMonths(-profile.MaxPhotoAgeMonths)
-            ? new ValidationIssue(Id, ValidationStatus.Pass, "Возраст фотографии",
-                $"По метаданным снимок сделан {taken:d} ({limit}).", Math.Round(months, 1), "мес.")
-            { Category = ValidationCategory.Visual }
-            : new ValidationIssue(Id, ValidationStatus.Warning, "Возраст фотографии",
-                $"По метаданным снимок сделан {taken:d}; требуется фото {limit}. Если дата неверна, проверьте вручную.",
-                Math.Round(months, 1), "мес.")
-            { Category = ValidationCategory.Visual };
+        var months = (context.Now - taken).TotalDays / 30.44;
+        yield return new ValidationIssue(Id, ValidationStatus.Warning, "Возраст фотографии",
+            $"По метаданным снимок сделан {taken:d}; требуется фото {limit}. Если дата неверна, проверьте вручную.",
+            Math.Round(months, 1), "мес.")
+        { Category = ValidationCategory.Visual };
     }
 }

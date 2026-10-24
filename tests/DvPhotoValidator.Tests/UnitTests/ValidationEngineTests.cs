@@ -107,8 +107,16 @@ public class ValidationEngineTests
         Assert.Equal(ValidationStatus.Pass, report.Issues.Single(i => i.RuleId == "FILE_FORMAT").Status);
     }
 
+    [Fact]
+    public void PhotoAge_SuitableDate_IsNotReported()
+    {
+        var now = new DateTime(2026, 10, 24);
+        var context = new ValidationContext { Capture = new CaptureDateInfo(now.AddDays(-30)), Now = now };
+
+        Assert.Empty(new PhotoAgeRule().Evaluate(context, RuleProfile.Baseline));
+    }
+
     [Theory]
-    [InlineData(-30, ValidationStatus.Pass)]
     [InlineData(-200, ValidationStatus.Warning)]
     [InlineData(30, ValidationStatus.ManualReview)]
     public void PhotoAge_UsesCaptureDate(int days, ValidationStatus expected)
