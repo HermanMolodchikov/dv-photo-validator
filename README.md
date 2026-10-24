@@ -13,7 +13,7 @@
 | 1. MVP | Импорт, ручное кадрирование, JPEG 600×600, лимит размера, технические проверки, тесты | **готово (v0.1.0)** |
 | 2. Автокадрирование | Детекция лица (YuNet), автоматические ориентиры с уверенностью, «Автоматически выровнять», проверка центрирования | **готово (v0.2.0)** |
 | 3. Визуальные проверки | Фон, шум, резкость, освещение, поза, открытые глаза, признаки очков; отметки «Проверено мной» | **готово (v0.3.0)**; выражение лица и головной убор — только вручную |
-| 4. Релиз | Установщик MSIX, инструкция пользователя, проверка лицензий | не начат |
+| 4. Релиз | Сборка-архив для Windows x64, инструкция пользователя, примеры отчётов, CI, лицензии | **готово (v1.0.0)**; установщик MSIX — после получения сертификата подписи |
 
 ## Требования для сборки
 
@@ -34,11 +34,13 @@ dotnet test DvPhotoValidator.sln
 dotnet run --project src/DvPhotoValidator.App
 ```
 
-Готовая сборка для Windows x64 (требует установленного .NET 10 Desktop Runtime):
+Релиз: прогон тестов, автономная сборка для Windows x64 (на компьютере пользователя .NET не нужен) и архив `dist\DvPhotoValidator-<версия>-win-x64.zip`:
 
 ```bash
-dotnet publish src/DvPhotoValidator.App -c Release -r win-x64 --self-contained false -o publish
+powershell -ExecutionPolicy Bypass -File build/release.ps1 -Version 1.0.0
 ```
+
+CI (GitHub Actions, `.github/workflows/build.yml`) собирает решение, запускает тесты и публикует сборку как артефакт.
 
 Путь к фото можно передать аргументом: `DvPhotoValidator.exe photo.jpg`.
 
@@ -64,6 +66,8 @@ DvPhotoValidator.sln
 
 ## Документация
 
+- [docs/user-guide.md](docs/user-guide.md) — инструкция пользователя
 - [docs/algorithms.md](docs/algorithms.md) — алгоритмы, правила проверки и ограничения точности
+- [docs/report-examples.md](docs/report-examples.md) — примеры отчётов проверки
 - [docs/rules-update.md](docs/rules-update.md) — как обновить требования DV на новый год
 - [THIRD-PARTY.md](THIRD-PARTY.md) — зависимости и лицензии
