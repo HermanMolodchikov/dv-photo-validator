@@ -31,6 +31,12 @@ public interface IFaceAnalyzer
     FaceAnalysis Analyze(RgbImage image);
 }
 
+public interface IQualityAnalyzer
+{
+    /// <summary>Measures background, sharpness, lighting, pose, eyes and glasses on the frame as it will be exported.</summary>
+    QualityMeasurements Analyze(RgbImage source, CropRect crop, DetectedFace face, HeadLandmarks landmarks, int frameSize);
+}
+
 public interface IJpegExporter
 {
     /// <summary>Encodes with the highest quality that fits the profile's file size limit.</summary>

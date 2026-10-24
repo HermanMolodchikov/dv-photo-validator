@@ -25,6 +25,10 @@ public sealed class MainViewModel : ObservableObject
     private readonly ValidationEngine _engine;
     private readonly IDialogService _dialogs;
     private readonly IFaceAnalyzer? _faceAnalyzer;
+    private readonly IQualityAnalyzer? _qualityAnalyzer;
+    private readonly HashSet<string> _confirmed = [];
+    private QualityMeasurements? _quality;
+    private int _qualityVersion;
 
     private LoadedImage? _loaded;
     private FaceAnalysis? _face;
@@ -49,9 +53,11 @@ public sealed class MainViewModel : ObservableObject
         IDialogService dialogs,
         RuleProfileLoadResult profiles,
         IFaceAnalyzer? faceAnalyzer = null,
-        string? faceAnalyzerError = null)
+        string? faceAnalyzerError = null,
+        IQualityAnalyzer? qualityAnalyzer = null)
     {
         _faceAnalyzer = faceAnalyzer;
+        _qualityAnalyzer = qualityAnalyzer;
         _loader = loader;
         _cropService = cropService;
         _exporter = exporter;
@@ -84,6 +90,7 @@ public sealed class MainViewModel : ObservableObject
         PreviewCommand = new AsyncRelayCommand(PreviewAsync, () => HasImage && !IsBusy);
         ExportCommand = new AsyncRelayCommand(ExportAsync, () => HasImage && !IsBusy);
         CopyReportCommand = new RelayCommand(CopyReport, () => HasImage);
+        ToggleConfirmCommand = new RelayCommand<string>(ToggleConfirm);
 
         if (profiles.Errors.Count > 0)
         {
@@ -205,6 +212,9 @@ public sealed class MainViewModel : ObservableObject
 
     public ICommand CopyReportCommand { get; }
 
+    /// <summary>Marks a "check it yourself" item as confirmed by the user (or removes the mark).</summary>
+    public ICommand ToggleConfirmCommand { get; }
+
     public async Task LoadAsync(string path)
     {
         if (IsBusy)
@@ -221,6 +231,9 @@ public sealed class MainViewModel : ObservableObject
 
             _loaded = loaded;
             _face = null;
+            _quality = null;
+            _qualityVersion++;
+            _confirmed.Clear();
             PreviewImage = null;
             PreviewStale = false;
             PreviewInfo = "Нажмите «Предпросмотр», чтобы увидеть итоговое изображение 600×600.";
@@ -335,6 +348,7 @@ public sealed class MainViewModel : ObservableObject
     private void OnGeometryChanged()
     {
         ValidateFrame();
+        ScheduleQualityAnalysis();
         if (PreviewImage is not null)
         {
             PreviewStale = true;
@@ -357,9 +371,68 @@ public sealed class MainViewModel : ObservableObject
             Landmarks = Editor.Landmarks,
             Capture = new CaptureDateInfo(_loaded.SourceFacts.DateTaken),
             Face = _face,
+            Quality = _quality,
+            ConfirmedByUser = _confirmed,
         };
         _frameReport = _engine.Run(context, _profile);
         FrameGroup.Update(_frameReport.Issues);
+    }
+
+    private void ToggleConfirm(string ruleId)
+    {
+        if (!_confirmed.Remove(ruleId))
+        {
+            _confirmed.Add(ruleId);
+        }
+
+        ValidateFrame();
+    }
+
+    /// <summary>
+    /// Quality is measured on the rendered frame, which takes a few hundred milliseconds on large photos,
+    /// so it runs in the background after the crop has stopped changing for a moment.
+    /// </summary>
+    private async void ScheduleQualityAnalysis()
+    {
+        var version = ++_qualityVersion;
+        if (_qualityAnalyzer is null || _loaded is null || _face?.Primary is not { } face)
+        {
+            if (_quality is not null)
+            {
+                _quality = null;
+                ValidateFrame();
+            }
+
+            return;
+        }
+
+        await Task.Delay(300);
+        if (version != _qualityVersion)
+        {
+            return;
+        }
+
+        var loaded = _loaded;
+        var crop = Editor.Crop;
+        var landmarks = Editor.Landmarks;
+        var size = _profile.ExportSize;
+        QualityMeasurements? quality;
+        try
+        {
+            quality = await Task.Run(() => _qualityAnalyzer.Analyze(loaded.Image, crop, face, landmarks, size));
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            quality = null;
+        }
+
+        if (version != _qualityVersion || !ReferenceEquals(loaded, _loaded))
+        {
+            return;
+        }
+
+        _quality = quality;
+        ValidateFrame();
     }
 
     private void CheckFrame()

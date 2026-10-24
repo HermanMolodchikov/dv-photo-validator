@@ -25,11 +25,27 @@ public sealed class ValidationEngine
         new FaceDetectionRule(),
         new HeadGeometryValidator(),
         new FaceCenterRule(),
+        new BackgroundRule(),
+        new SharpnessRule(),
+        new NoiseRule(),
+        new LightingRule(),
+        new PoseRule(),
+        new EyesOpenRule(),
+        new GlassesRule(),
         new PhotoAgeRule(),
         new ManualChecklistRule(),
     ]);
 
     public IReadOnlyList<IValidationRule> Rules => _rules;
+
+    /// <summary>
+    /// A ManualReview item the user has explicitly confirmed becomes Pass, marked as confirmed by the user.
+    /// Fails and Warnings are never overridden: a confirmation only answers "please check this yourself".
+    /// </summary>
+    public static ValidationIssue ApplyConfirmation(ValidationIssue issue, ValidationContext context) =>
+        issue.Status == ValidationStatus.ManualReview && issue.Confirmable && context.ConfirmedByUser.Contains(issue.RuleId)
+            ? issue with { Status = ValidationStatus.Pass, Description = "Подтверждено вами вручную. " + issue.Description, ConfirmedByUser = true }
+            : issue;
 
     public ValidationReport Run(ValidationContext context, RuleProfile profile)
     {
@@ -50,6 +66,6 @@ public sealed class ValidationEngine
             }
         }
 
-        return new ValidationReport(issues);
+        return new ValidationReport(issues.Select(i => ApplyConfirmation(i, context)));
     }
 }

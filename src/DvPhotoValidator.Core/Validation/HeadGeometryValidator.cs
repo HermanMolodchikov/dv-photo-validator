@@ -59,7 +59,7 @@ public sealed class HeadGeometryValidator : IValidationRule
             if (chin <= top)
             {
                 yield return Visual(HeadHeightId, ValidationStatus.ManualReview, "Высота головы",
-                    "Линия подбородка расположена выше верха головы. Поправьте ориентиры.");
+                    "Линия подбородка расположена выше верха головы. Поправьте ориентиры.") with { Confirmable = false };
             }
             else
             {
@@ -87,7 +87,7 @@ public sealed class HeadGeometryValidator : IValidationRule
         else
         {
             yield return Visual(HeadHeightId, ValidationStatus.ManualReview, "Высота головы",
-                $"Отметьте верх головы (включая волосы) и низ подбородка, чтобы измерить высоту головы. Норма {headRange}.");
+                $"Отметьте верх головы (включая волосы) и низ подбородка, чтобы измерить высоту головы. Норма {headRange}.") with { Confirmable = false };
         }
 
         if (measured.EyeHeightPercent is { } e)
@@ -100,7 +100,7 @@ public sealed class HeadGeometryValidator : IValidationRule
         else
         {
             yield return Visual(EyeHeightId, ValidationStatus.ManualReview, "Высота линии глаз",
-                $"Отметьте линию глаз. Норма — {eyeRange} высоты кадра от нижнего края.");
+                $"Отметьте линию глаз. Норма — {eyeRange} высоты кадра от нижнего края.") with { Confirmable = false };
         }
     }
 

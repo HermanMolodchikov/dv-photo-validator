@@ -29,6 +29,12 @@ public sealed record ValidationContext
     /// <summary>Automatic face analysis; null when it was not run (e.g. the model is unavailable).</summary>
     public FaceAnalysis? Face { get; init; }
 
+    /// <summary>Quality measurements of the current frame; null when not available (no face, not yet computed).</summary>
+    public QualityMeasurements? Quality { get; init; }
+
+    /// <summary>Rule ids the user has confirmed by hand; their ManualReview results become Pass.</summary>
+    public IReadOnlySet<string> ConfirmedByUser { get; init; } = new HashSet<string>();
+
     public DateTime Now { get; init; } = DateTime.Now;
 
     public static ValidationContext ForFile(ImageFileFacts facts) => new() { File = facts };

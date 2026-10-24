@@ -12,7 +12,7 @@
 |---|---|---|
 | 1. MVP | Импорт, ручное кадрирование, JPEG 600×600, лимит размера, технические проверки, тесты | **готово (v0.1.0)** |
 | 2. Автокадрирование | Детекция лица (YuNet), автоматические ориентиры с уверенностью, «Автоматически выровнять», проверка центрирования | **готово (v0.2.0)** |
-| 3. Визуальные проверки | Фон, резкость, освещение, поза, глаза, очки и головные уборы | не начат: пока это пункты «Проверьте вручную» |
+| 3. Визуальные проверки | Фон, шум, резкость, освещение, поза, открытые глаза, признаки очков; отметки «Проверено мной» | **готово (v0.3.0)**; выражение лица и головной убор — только вручную |
 | 4. Релиз | Установщик MSIX, инструкция пользователя, проверка лицензий | не начат |
 
 ## Требования для сборки
@@ -54,7 +54,8 @@ DvPhotoValidator.sln
 │   └── Interfaces    IImageLoader, IImageInspector, ICropService, IJpegExporter
 ├── src/DvPhotoValidator.Imaging    — WIC: ImageLoader, ImageNormalizer (EXIF), ColorSpaceConverter (sRGB),
 │                                     CropService (ресемплинг Митчелла), JpegExporter (подбор качества и перепроверка)
-├── src/DvPhotoValidator.Vision     — ONNX Runtime: FaceDetector (YuNet), LandmarkDetector, HeadTopEstimator, FaceAnalyzer
+├── src/DvPhotoValidator.Vision     — ONNX Runtime: FaceDetector (YuNet), LandmarkDetector, HeadTopEstimator, FaceAnalyzer;
+│                                     PhotoQualityAnalyzer (фон, шум, резкость, свет, поза, глаза, очки)
 ├── src/DvPhotoValidator.App        — WPF/MVVM: Views, ViewModels, Commands, Services, Resources
 └── tests/DvPhotoValidator.Tests    — xUnit: UnitTests, IntegrationTests (WIC и UI smoke-тест), TestImages (генерация в коде)
 ```

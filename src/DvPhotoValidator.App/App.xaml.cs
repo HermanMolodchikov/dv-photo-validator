@@ -24,7 +24,7 @@ public partial class App : Application
         var engine = ValidationEngine.CreateDefault();
         _faceAnalyzer = FaceAnalyzer.TryCreateDefault(out var faceError);
         var viewModel = new MainViewModel(loader, new CropService(), new JpegExporter(loader, engine), engine, new DialogService(), profiles,
-            _faceAnalyzer, faceError);
+            _faceAnalyzer, faceError, new PhotoQualityAnalyzer());
 
         var window = new MainWindow { DataContext = viewModel };
         MainWindow = window;

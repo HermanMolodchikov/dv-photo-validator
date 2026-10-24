@@ -53,6 +53,12 @@
                                             <Run Text="{Binding MeasuredText, Mode=OneWay, StringFormat=' — {0}', TargetNullValue=''}" />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="12" />
+                                        <CheckBox Content="Проверено мной" Margin="0,3,0,0" FontSize="12"
+                                                  IsChecked="{Binding ConfirmedByUser, Mode=OneWay}"
+                                                  Command="{Binding DataContext.ToggleConfirmCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding RuleId}"
+                                                  Visibility="{Binding CanConfirm, Converter={StaticResource BoolToVisibility}}"
+                                                  ToolTip="Отметьте, если вы сами проверили этот пункт на фото" />
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>
