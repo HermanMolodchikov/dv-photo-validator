@@ -6,11 +6,14 @@ using DvPhotoValidator.App.Views;
 using DvPhotoValidator.Core.Rules;
 using DvPhotoValidator.Core.Validation;
 using DvPhotoValidator.Imaging;
+using DvPhotoValidator.Vision;
 
 namespace DvPhotoValidator.App;
 
 public partial class App : Application
 {
+    private FaceAnalyzer? _faceAnalyzer;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -19,7 +22,9 @@ public partial class App : Application
         var profiles = RuleProfileLoader.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "Rules"));
         var loader = new ImageLoader();
         var engine = ValidationEngine.CreateDefault();
-        var viewModel = new MainViewModel(loader, new CropService(), new JpegExporter(loader, engine), engine, new DialogService(), profiles);
+        _faceAnalyzer = FaceAnalyzer.TryCreateDefault(out var faceError);
+        var viewModel = new MainViewModel(loader, new CropService(), new JpegExporter(loader, engine), engine, new DialogService(), profiles,
+            _faceAnalyzer, faceError);
 
         var window = new MainWindow { DataContext = viewModel };
         MainWindow = window;
@@ -31,6 +36,12 @@ public partial class App : Application
         {
             _ = viewModel.LoadAsync(photo);
         }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _faceAnalyzer?.Dispose();
+        base.OnExit(e);
     }
 
     // A processing error must never take the whole application down. No image data is logged.

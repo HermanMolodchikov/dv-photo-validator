@@ -26,6 +26,9 @@ public sealed record ValidationContext
 
     public CaptureDateInfo? Capture { get; init; }
 
+    /// <summary>Automatic face analysis; null when it was not run (e.g. the model is unavailable).</summary>
+    public FaceAnalysis? Face { get; init; }
+
     public DateTime Now { get; init; } = DateTime.Now;
 
     public static ValidationContext ForFile(ImageFileFacts facts) => new() { File = facts };

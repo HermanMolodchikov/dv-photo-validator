@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DvPhotoValidator.Vision\DvPhotoValidator.Vision.csproj" />
     <ProjectReference Include="..\..\src\DvPhotoValidator.Core\DvPhotoValidator.Core.csproj" />
     <ProjectReference Include="..\..\src\DvPhotoValidator.Imaging\DvPhotoValidator.Imaging.csproj" />
     <ProjectReference Include="..\..\src\DvPhotoValidator.App\DvPhotoValidator.App.csproj" />

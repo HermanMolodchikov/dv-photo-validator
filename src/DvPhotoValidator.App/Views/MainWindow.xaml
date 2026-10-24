@@ -16,6 +16,7 @@
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenCommand}" />
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding ExportCommand}" />
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding PreviewCommand}" />
+        <KeyBinding Key="A" Modifiers="Control" Command="{Binding AutoAlignCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -73,6 +74,8 @@
                 <DockPanel LastChildFill="False">
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                         <Button Content="_Открыть…" Command="{Binding OpenCommand}" ToolTip="Открыть фотографию (Ctrl+O)" />
+                        <Button Content="_Автоматически выровнять" Command="{Binding AutoAlignCommand}"
+                                ToolTip="Найти лицо и предложить кадр и ориентиры (Ctrl+A)" />
                         <Button Content="Сбросить _кадр" Command="{Binding ResetCropCommand}" ToolTip="Вернуть рамку к исходному положению" />
                         <Button Content="Сбросить _ориентиры" Command="{Binding ResetLandmarksCommand}" ToolTip="Убрать отметки головы, глаз и подбородка" />
                         <Button Content="_Проверить кадр" Command="{Binding CheckFrameCommand}" />
@@ -119,7 +122,7 @@
                         <TextBlock Text="{Binding Editor.HeadText}" FontWeight="SemiBold" Margin="0,4,0,0" />
                         <TextBlock Text="{Binding Editor.EyesText}" FontWeight="SemiBold" />
                         <TextBlock Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"
-                                   Text="Колёсико мыши — масштаб; перетаскивание — сдвиг фото; цветные линии перетащите к верху головы (с волосами), линии глаз и низу подбородка. С клавиатуры: стрелки (Shift — быстрее), + и −." />
+                                   Text="Колёсико мыши — масштаб; перетаскивание — сдвиг фото; цветные линии — верх головы (с волосами), линия глаз и низ подбородка. Пометка «авто» — линии поставлены автоматически: проверьте их. Жёлтые точки — то, что нашёл детектор лица. С клавиатуры: стрелки (Shift — быстрее), + и −." />
                     </StackPanel>
 
                     <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="#FF2B2B2E">

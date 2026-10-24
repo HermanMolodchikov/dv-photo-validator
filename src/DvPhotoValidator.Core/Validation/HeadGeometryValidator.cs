@@ -18,6 +18,9 @@ public sealed class HeadGeometryValidator : IValidationRule
     public const string EyeHeightId = "EYE_HEIGHT";
     public const string HeadInFrameId = "HEAD_IN_FRAME";
 
+    /// <summary>Automatic landmarks below this confidence are reported as ManualReview instead of Pass/Fail.</summary>
+    public const double MinAutomaticConfidence = 0.6;
+
     public string Id => HeadHeightId;
 
     public static HeadMeasurement Measure(CropRect crop, HeadLandmarks landmarks)
@@ -43,6 +46,11 @@ public sealed class HeadGeometryValidator : IValidationRule
             ? "Метод: ручные ориентиры."
             : $"Метод: автоматические ориентиры, уверенность {landmarks.Confidence:P0}.";
         var measured = Measure(crop, landmarks);
+        var lowConfidence = landmarks.Source == LandmarkSource.Automatic && (landmarks.Confidence ?? 0) < MinAutomaticConfidence;
+        const string lowConfidenceText = " Требуется ручная проверка: уверенность автоматических ориентиров низкая — поправьте линии.";
+        ValidationStatus Judge(bool inRange) => lowConfidence
+            ? ValidationStatus.ManualReview
+            : inRange ? ValidationStatus.Pass : ValidationStatus.Fail;
         var headRange = $"{profile.HeadMinRatio * 100:0}–{profile.HeadMaxRatio * 100:0}%";
         var eyeRange = $"{profile.EyeMinRatio * 100:0}–{profile.EyeMaxRatio * 100:0}%";
 
@@ -64,12 +72,16 @@ public sealed class HeadGeometryValidator : IValidationRule
                 var r = measured.HeadHeightPercent!.Value;
                 var pixels = r / 100 * profile.ExportSize;
                 var description = $"{r:0.#}% высоты кадра (≈{pixels:0} px при {profile.ExportSize} px); норма {headRange}. {method}";
-                var status = r >= profile.HeadMinRatio * 100 && r <= profile.HeadMaxRatio * 100
-                    ? ValidationStatus.Pass
-                    : ValidationStatus.Fail;
-                yield return Visual(HeadHeightId, status, "Высота головы",
-                    status == ValidationStatus.Pass ? description : $"{description} {(r < profile.HeadMinRatio * 100 ? "Голова слишком маленькая — приблизьте кадр." : "Голова слишком большая — отдалите кадр.")}",
-                    Math.Round(r, 1), "%");
+                var status = Judge(r >= profile.HeadMinRatio * 100 && r <= profile.HeadMaxRatio * 100);
+                var advice = status switch
+                {
+                    ValidationStatus.ManualReview => lowConfidenceText,
+                    ValidationStatus.Fail => r < profile.HeadMinRatio * 100
+                        ? " Голова слишком маленькая — приблизьте кадр."
+                        : " Голова слишком большая — отдалите кадр.",
+                    _ => "",
+                };
+                yield return Visual(HeadHeightId, status, "Высота головы", description + advice, Math.Round(r, 1), "%");
             }
         }
         else
@@ -80,11 +92,10 @@ public sealed class HeadGeometryValidator : IValidationRule
 
         if (measured.EyeHeightPercent is { } e)
         {
-            var status = e >= profile.EyeMinRatio * 100 && e <= profile.EyeMaxRatio * 100
-                ? ValidationStatus.Pass
-                : ValidationStatus.Fail;
+            var status = Judge(e >= profile.EyeMinRatio * 100 && e <= profile.EyeMaxRatio * 100);
             yield return Visual(EyeHeightId, status, "Высота линии глаз",
-                $"{e:0.#}% высоты кадра от нижнего края; норма {eyeRange}. {method}", Math.Round(e, 1), "%");
+                $"{e:0.#}% высоты кадра от нижнего края; норма {eyeRange}. {method}{(status == ValidationStatus.ManualReview ? lowConfidenceText : "")}",
+                Math.Round(e, 1), "%");
         }
         else
         {

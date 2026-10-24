@@ -5,6 +5,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DvPhotoValidator.App.Commands;
 using DvPhotoValidator.App.Services;
+using DvPhotoValidator.Core.Geometry;
+using DvPhotoValidator.Core.Imaging;
 using DvPhotoValidator.Core.Interfaces;
 using DvPhotoValidator.Core.Models;
 using DvPhotoValidator.Core.Rules;
@@ -22,8 +24,10 @@ public sealed class MainViewModel : ObservableObject
     private readonly IJpegExporter _exporter;
     private readonly ValidationEngine _engine;
     private readonly IDialogService _dialogs;
+    private readonly IFaceAnalyzer? _faceAnalyzer;
 
     private LoadedImage? _loaded;
+    private FaceAnalysis? _face;
     private RuleProfile _profile;
     private ValidationReport _sourceReport = ValidationReport.Empty;
     private ValidationReport _frameReport = ValidationReport.Empty;
@@ -43,8 +47,11 @@ public sealed class MainViewModel : ObservableObject
         IJpegExporter exporter,
         ValidationEngine engine,
         IDialogService dialogs,
-        RuleProfileLoadResult profiles)
+        RuleProfileLoadResult profiles,
+        IFaceAnalyzer? faceAnalyzer = null,
+        string? faceAnalyzerError = null)
     {
+        _faceAnalyzer = faceAnalyzer;
         _loader = loader;
         _cropService = cropService;
         _exporter = exporter;
@@ -73,6 +80,7 @@ public sealed class MainViewModel : ObservableObject
         ResetCropCommand = new RelayCommand(Editor.ResetCrop, () => HasImage);
         ResetLandmarksCommand = new RelayCommand(Editor.ResetLandmarks, () => HasImage);
         CheckFrameCommand = new RelayCommand(CheckFrame, () => HasImage);
+        AutoAlignCommand = new AsyncRelayCommand(AutoAlignAsync, () => HasImage && !IsBusy && _faceAnalyzer is not null);
         PreviewCommand = new AsyncRelayCommand(PreviewAsync, () => HasImage && !IsBusy);
         ExportCommand = new AsyncRelayCommand(ExportAsync, () => HasImage && !IsBusy);
         CopyReportCommand = new RelayCommand(CopyReport, () => HasImage);
@@ -80,6 +88,10 @@ public sealed class MainViewModel : ObservableObject
         if (profiles.Errors.Count > 0)
         {
             StatusText = "Не все файлы правил загружены: " + string.Join("; ", profiles.Errors);
+        }
+        else if (faceAnalyzerError is not null)
+        {
+            StatusText = faceAnalyzerError;
         }
     }
 
@@ -183,6 +195,10 @@ public sealed class MainViewModel : ObservableObject
 
     public ICommand CheckFrameCommand { get; }
 
+    public ICommand AutoAlignCommand { get; }
+
+    public bool CanAutoAlign => _faceAnalyzer is not null;
+
     public ICommand PreviewCommand { get; }
 
     public ICommand ExportCommand { get; }
@@ -204,6 +220,7 @@ public sealed class MainViewModel : ObservableObject
             var display = await Task.Run(() => CreateDisplayBitmap(loaded.Image));
 
             _loaded = loaded;
+            _face = null;
             PreviewImage = null;
             PreviewStale = false;
             PreviewInfo = "Нажмите «Предпросмотр», чтобы увидеть итоговое изображение 600×600.";
@@ -217,8 +234,12 @@ public sealed class MainViewModel : ObservableObject
             SelectedTab = 0;
 
             var name = Path.GetFileName(loaded.FilePath);
-            StatusText = $"Открыто: {name}. Перетащите линии к верху головы, глазам и подбородку.";
             AddHistory("Открыт файл", name);
+            StatusText = $"Открыто: {name}. Перетащите линии к верху головы, глазам и подбородку.";
+            if (_faceAnalyzer is not null)
+            {
+                await AnalyzeAndAlignAsync();
+            }
         }
         catch (ImageProcessingException ex)
         {
@@ -230,6 +251,77 @@ public sealed class MainViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private async Task AutoAlignAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            await AnalyzeAndAlignAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Detects the face, estimates landmarks and proposes a crop. Never invents a frame when no face is found.
+    /// Re-running discards manual corrections of the lines, which is what "align automatically" means.
+    /// </summary>
+    private async Task AnalyzeAndAlignAsync()
+    {
+        if (_loaded is null || _faceAnalyzer is null)
+        {
+            return;
+        }
+
+        StatusText = "Поиск лица и расчёт кадра…";
+        var loaded = _loaded;
+        FaceAnalysis analysis;
+        try
+        {
+            analysis = await Task.Run(() => _faceAnalyzer.Analyze(loaded.Image));
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            StatusText = $"Автоматический анализ лица не выполнен ({ex.GetType().Name}). Отметьте ориентиры вручную.";
+            return;
+        }
+
+        if (!ReferenceEquals(loaded, _loaded))
+        {
+            return; // Another photo was opened meanwhile.
+        }
+
+        _face = analysis;
+        if (analysis.Primary is not { } face || analysis.Landmarks is not { } landmarks)
+        {
+            Editor.ApplyAutomatic(null, null, null);
+            StatusText = "Лицо не найдено автоматически. Отметьте ориентиры вручную или выберите другое фото.";
+            AddHistory("Лицо не найдено", Path.GetFileName(loaded.FilePath));
+            return;
+        }
+
+        var proposal = AutoCrop.Compute(landmarks, face.EyeCenter.X, loaded.Image.Width, loaded.Image.Height, _profile);
+        Editor.ApplyAutomatic(face, landmarks, proposal?.Crop);
+
+        var messages = new List<string> { $"Кадр выровнен автоматически (уверенность {landmarks.Confidence:P0})." };
+        if (analysis.Faces.Count > 1)
+        {
+            messages.Add($"Найдено лиц: {analysis.Faces.Count}.");
+        }
+
+        if (proposal?.WasConstrained == true)
+        {
+            messages.Add("Лицо близко к краю фото — идеальное положение рамки недостижимо.");
+        }
+
+        messages.AddRange(analysis.Notes);
+        messages.Add("Проверьте линии и при необходимости поправьте их.");
+        StatusText = string.Join(" ", messages);
+        AddHistory("Автовыравнивание", $"уверенность {landmarks.Confidence:P0}");
     }
 
     private async Task OpenAsync()
@@ -264,6 +356,7 @@ public sealed class MainViewModel : ObservableObject
             SourceHeight = Editor.SourceHeight,
             Landmarks = Editor.Landmarks,
             Capture = new CaptureDateInfo(_loaded.SourceFacts.DateTaken),
+            Face = _face,
         };
         _frameReport = _engine.Run(context, _profile);
         FrameGroup.Update(_frameReport.Issues);
@@ -436,7 +529,7 @@ public sealed class MainViewModel : ObservableObject
         }
 
         var k = (double)MaxDisplaySide / longest;
-        var reduced = CropService.Resample(image, 0, 0, image.Width, image.Height,
+        var reduced = Resampler.Resample(image, 0, 0, image.Width, image.Height,
             Math.Max(1, (int)Math.Round(image.Width * k)), Math.Max(1, (int)Math.Round(image.Height * k)));
         return CreateBitmap(reduced);
     }

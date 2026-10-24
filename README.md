@@ -11,7 +11,7 @@
 | Этап | Содержание | Статус |
 |---|---|---|
 | 1. MVP | Импорт, ручное кадрирование, JPEG 600×600, лимит размера, технические проверки, тесты | **готово (v0.1.0)** |
-| 2. Автокадрирование | Детекция лица, автоматические ориентиры, «Автоматически выровнять» | не начат |
+| 2. Автокадрирование | Детекция лица (YuNet), автоматические ориентиры с уверенностью, «Автоматически выровнять», проверка центрирования | **готово (v0.2.0)** |
 | 3. Визуальные проверки | Фон, резкость, освещение, поза, глаза, очки и головные уборы | не начат: пока это пункты «Проверьте вручную» |
 | 4. Релиз | Установщик MSIX, инструкция пользователя, проверка лицензий | не начат |
 
@@ -54,11 +54,12 @@ DvPhotoValidator.sln
 │   └── Interfaces    IImageLoader, IImageInspector, ICropService, IJpegExporter
 ├── src/DvPhotoValidator.Imaging    — WIC: ImageLoader, ImageNormalizer (EXIF), ColorSpaceConverter (sRGB),
 │                                     CropService (ресемплинг Митчелла), JpegExporter (подбор качества и перепроверка)
+├── src/DvPhotoValidator.Vision     — ONNX Runtime: FaceDetector (YuNet), LandmarkDetector, HeadTopEstimator, FaceAnalyzer
 ├── src/DvPhotoValidator.App        — WPF/MVVM: Views, ViewModels, Commands, Services, Resources
 └── tests/DvPhotoValidator.Tests    — xUnit: UnitTests, IntegrationTests (WIC и UI smoke-тест), TestImages (генерация в коде)
 ```
 
-Проекта `DvPhotoValidator.Vision` из ТЗ пока нет: он появится на этапе 2 вместе с детектором лица.
+Модель лица (`face_detection_yunet_2023mar.onnx`, около 230 КБ) поставляется вместе с программой в папке `Models` и работает локально на процессоре.
 
 ## Документация
 

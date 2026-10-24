@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DvPhotoValidator.Vision\DvPhotoValidator.Vision.csproj" />
     <ProjectReference Include="..\DvPhotoValidator.Core\DvPhotoValidator.Core.csproj" />
     <ProjectReference Include="..\DvPhotoValidator.Imaging\DvPhotoValidator.Imaging.csproj" />
   </ItemGroup>

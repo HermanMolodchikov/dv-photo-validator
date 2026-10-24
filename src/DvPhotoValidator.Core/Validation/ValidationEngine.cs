@@ -22,7 +22,9 @@ public sealed class ValidationEngine
         new ColorModeRule(),
         new ColorSpaceRule(),
         new CropResolutionRule(),
+        new FaceDetectionRule(),
         new HeadGeometryValidator(),
+        new FaceCenterRule(),
         new PhotoAgeRule(),
         new ManualChecklistRule(),
     ]);

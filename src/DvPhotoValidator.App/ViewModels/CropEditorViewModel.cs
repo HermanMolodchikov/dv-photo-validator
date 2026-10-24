@@ -39,6 +39,9 @@ public sealed class CropEditorViewModel : ObservableObject
     private double? _eyes;
     private double? _chin;
     private RuleProfile _profile;
+    private LandmarkSource _source = LandmarkSource.Manual;
+    private double? _confidence;
+    private DetectedFace? _face;
 
     public CropEditorViewModel(RuleProfile profile)
     {
@@ -58,7 +61,30 @@ public sealed class CropEditorViewModel : ObservableObject
 
     public int SourceHeight => _height;
 
-    public HeadLandmarks Landmarks => new(_top, _chin, _eyes);
+    public HeadLandmarks Landmarks => new(_top, _chin, _eyes) { Source = _source, Confidence = _confidence };
+
+    public bool IsAutomatic => _source == LandmarkSource.Automatic;
+
+    public string TopLabel => IsAutomatic ? "Верх головы (авто)" : "Верх головы";
+
+    public string EyesLabel => IsAutomatic ? "Глаза (авто)" : "Глаза";
+
+    public string ChinLabel => IsAutomatic ? "Подбородок (авто)" : "Подбородок";
+
+    public bool HasFace => _face is not null;
+
+    public double FaceBoxLeft => _face is null ? 0 : ToDisplayX(_face.X);
+
+    public double FaceBoxTop => _face is null ? 0 : ToDisplay(_face.Y);
+
+    public double FaceBoxWidth => _face is null ? 0 : _face.Width * Scale;
+
+    public double FaceBoxHeight => _face is null ? 0 : _face.Height * Scale;
+
+    /// <summary>Detector keypoints (eyes, nose, mouth corners) in canvas coordinates, for visual verification.</summary>
+    public IReadOnlyList<PointD> FaceMarkers => _face is null
+        ? []
+        : [Marker(_face.RightEye), Marker(_face.LeftEye), Marker(_face.Nose), Marker(_face.MouthRight), Marker(_face.MouthLeft)];
 
     public double Scale => _crop.Size > 0 ? FrameSize / _crop.Size : 1;
 
@@ -123,6 +149,35 @@ public sealed class CropEditorViewModel : ObservableObject
         _height = sourceHeight;
         _crop = CropGeometry.Default(sourceWidth, sourceHeight);
         _top = _eyes = _chin = null;
+        _source = LandmarkSource.Manual;
+        _confidence = null;
+        _face = null;
+        Changed();
+    }
+
+    /// <summary>Applies an automatic proposal: detected face, landmarks and (optionally) a crop.</summary>
+    public void ApplyAutomatic(DetectedFace? face, HeadLandmarks? landmarks, CropRect? crop)
+    {
+        if (!HasImage)
+        {
+            return;
+        }
+
+        _face = face;
+        if (landmarks is not null)
+        {
+            _top = landmarks.HeadTopY;
+            _chin = landmarks.ChinY;
+            _eyes = landmarks.EyeLineY;
+            _source = landmarks.Source;
+            _confidence = landmarks.Confidence;
+        }
+
+        if (crop is { } c)
+        {
+            _crop = CropGeometry.Clamp(c, _width, _height);
+        }
+
         Changed();
     }
 
@@ -146,6 +201,8 @@ public sealed class CropEditorViewModel : ObservableObject
     public void ResetLandmarks()
     {
         _top = _eyes = _chin = null;
+        _source = LandmarkSource.Manual;
+        _confidence = null;
         Changed();
     }
 
@@ -186,6 +243,10 @@ public sealed class CropEditorViewModel : ObservableObject
         }
 
         var y = Math.Clamp(FromDisplay(displayY), 0, _height);
+
+        // Once the user adjusts a line, the landmarks are the user's own measurement.
+        _source = LandmarkSource.Manual;
+        _confidence = null;
         switch (kind)
         {
             case GuideKind.HeadTop:
@@ -203,6 +264,10 @@ public sealed class CropEditorViewModel : ObservableObject
     }
 
     private double ToDisplay(double sourceY) => FrameOffset + (sourceY - _crop.Y) * Scale;
+
+    private double ToDisplayX(double sourceX) => FrameOffset + (sourceX - _crop.X) * Scale;
+
+    private PointD Marker(PointD p) => new(ToDisplayX(p.X), ToDisplay(p.Y));
 
     private double FromDisplay(double displayY) => _crop.Y + (displayY - FrameOffset) / Scale;
 

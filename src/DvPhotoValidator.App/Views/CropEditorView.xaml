@@ -48,26 +48,50 @@
             <TextBlock Canvas.Left="44" Canvas.Top="524" Foreground="#FFB0B0B0" FontSize="11" IsHitTestVisible="False"
                        Text="Зелёная полоса — допустимая линия глаз; голубая — допустимый подбородок." />
 
+            <!-- Detected face box and keypoints, so the user can see what the detector found. -->
+            <Rectangle Canvas.Left="{Binding FaceBoxLeft}" Canvas.Top="{Binding FaceBoxTop}"
+                       Width="{Binding FaceBoxWidth}" Height="{Binding FaceBoxHeight}"
+                       Stroke="#CCFFD740" StrokeThickness="1" StrokeDashArray="3 3" IsHitTestVisible="False"
+                       Visibility="{Binding HasFace, Converter={StaticResource BoolToVisibility}}" />
+            <ItemsControl ItemsSource="{Binding FaceMarkers}" IsHitTestVisible="False" Focusable="False">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Ellipse Width="6" Height="6" Margin="-3,-3,0,0" Fill="#FFFFD740" Stroke="#FF5D4000" StrokeThickness="0.5" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <!-- Draggable guides. Dashed = not placed yet. -->
             <Canvas Canvas.Top="{Binding TopGuideY}" Tag="HeadTop" Cursor="SizeNS"
                     MouseLeftButtonDown="Guide_MouseLeftButtonDown">
                 <Rectangle Canvas.Left="0" Canvas.Top="-7" Width="560" Height="14" Fill="Transparent" />
                 <Line X1="20" X2="540" Y1="0" Y2="0" Stroke="#FFFF6E6E" StrokeThickness="2" StrokeDashArray="{Binding TopDash}" />
-                <TextBlock Canvas.Left="44" Canvas.Top="-19" Text="Верх головы" Foreground="#FFFF6E6E" FontSize="12" FontWeight="SemiBold" />
+                <TextBlock Canvas.Left="44" Canvas.Top="-19" Text="{Binding TopLabel}" Foreground="#FFFF6E6E" FontSize="12" FontWeight="SemiBold" />
             </Canvas>
 
             <Canvas Canvas.Top="{Binding EyesGuideY}" Tag="Eyes" Cursor="SizeNS"
                     MouseLeftButtonDown="Guide_MouseLeftButtonDown">
                 <Rectangle Canvas.Left="0" Canvas.Top="-7" Width="560" Height="14" Fill="Transparent" />
                 <Line X1="20" X2="540" Y1="0" Y2="0" Stroke="#FF69F0AE" StrokeThickness="2" StrokeDashArray="{Binding EyesDash}" />
-                <TextBlock Canvas.Left="460" Canvas.Top="-19" Text="Глаза" Foreground="#FF69F0AE" FontSize="12" FontWeight="SemiBold" />
+                <TextBlock Canvas.Left="420" Canvas.Top="-19" Text="{Binding EyesLabel}" Foreground="#FF69F0AE" FontSize="12" FontWeight="SemiBold" />
             </Canvas>
 
             <Canvas Canvas.Top="{Binding ChinGuideY}" Tag="Chin" Cursor="SizeNS"
                     MouseLeftButtonDown="Guide_MouseLeftButtonDown">
                 <Rectangle Canvas.Left="0" Canvas.Top="-7" Width="560" Height="14" Fill="Transparent" />
                 <Line X1="20" X2="540" Y1="0" Y2="0" Stroke="#FF40C4FF" StrokeThickness="2" StrokeDashArray="{Binding ChinDash}" />
-                <TextBlock Canvas.Left="44" Canvas.Top="3" Text="Подбородок" Foreground="#FF40C4FF" FontSize="12" FontWeight="SemiBold" />
+                <TextBlock Canvas.Left="44" Canvas.Top="3" Text="{Binding ChinLabel}" Foreground="#FF40C4FF" FontSize="12" FontWeight="SemiBold" />
             </Canvas>
         </Canvas>
     </Viewbox>

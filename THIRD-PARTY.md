@@ -6,8 +6,10 @@
 |---|---|---|
 | .NET 10 (Microsoft.NETCore.App, Microsoft.WindowsDesktop.App: WPF) | Платформа и интерфейс | MIT |
 | Windows Imaging Component (часть Windows) | Декодирование, управление цветом, кодирование JPEG | Компонент ОС |
+| Microsoft.ML.OnnxRuntime 1.20.1 | Запуск модели лица на CPU | MIT |
+| YuNet `face_detection_yunet_2023mar.onnx` (OpenCV Zoo, © 2020 Shiqi Yu) | Детекция лица и 5 ключевых точек | MIT, текст: `src/DvPhotoValidator.Vision/Models/YUNET-LICENSE.txt` |
 
-Сторонних NuGet-пакетов во время выполнения на этапе 1 нет.
+Других сторонних компонентов во время выполнения нет.
 
 ## Только для тестов
 
@@ -20,6 +22,4 @@
 
 ## Будущие этапы (лицензии проверить до включения)
 
-- OpenCvSharp4 (Apache-2.0) и нативные сборки OpenCV (Apache-2.0)
-- Microsoft.ML.OnnxRuntime (MIT)
 - Модели лица и ориентиров: лицензию каждой модели проверить отдельно (например, MediaPipe — Apache-2.0; у части моделей на основе InsightFace есть ограничения на коммерческое использование).

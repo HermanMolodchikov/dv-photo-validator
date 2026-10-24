@@ -22,6 +22,15 @@ public interface ICropService
     RgbImage Render(RgbImage source, CropRect crop, int size);
 }
 
+public interface IFaceAnalyzer
+{
+    /// <summary>
+    /// Finds faces and estimates head landmarks. Returns an empty result when no face is found;
+    /// never invents coordinates.
+    /// </summary>
+    FaceAnalysis Analyze(RgbImage image);
+}
+
 public interface IJpegExporter
 {
     /// <summary>Encodes with the highest quality that fits the profile's file size limit.</summary>
