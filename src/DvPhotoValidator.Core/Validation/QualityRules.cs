@@ -235,9 +235,10 @@ public sealed class GlassesRule : QualityRule
     protected override IEnumerable<ValidationIssue> Evaluate(QualityMeasurements quality)
     {
         var g = quality.Glasses;
-        // The heuristic cannot prove the absence of glasses (e.g. rimless), so "not found" still asks for a look.
-        yield return g.RimScore > QualityThresholds.GlassesRimScore || g.BridgeScore > QualityThresholds.GlassesBridgeScore
-            ? Warn("Очки", "Похоже, на фото есть очки (контуры оправы под глазами или на переносице). Очки на фото для DV не допускаются.")
-            : Manual("Очки", "Признаков оправы не найдено. Убедитесь, что на фото нет очков (в том числе без оправы) и бликов от линз.");
+        // Reported only when signs of a frame are found; the heuristic cannot prove their absence.
+        if (g.RimScore > QualityThresholds.GlassesRimScore || g.BridgeScore > QualityThresholds.GlassesBridgeScore)
+        {
+            yield return Warn("Очки", "Похоже, на фото есть очки (контуры оправы под глазами или на переносице). Очки на фото для DV не допускаются.");
+        }
     }
 }

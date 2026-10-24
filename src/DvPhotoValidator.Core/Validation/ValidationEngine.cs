@@ -33,7 +33,6 @@ public sealed class ValidationEngine
         new EyesOpenRule(),
         new GlassesRule(),
         new PhotoAgeRule(),
-        new ManualChecklistRule(),
     ]);
 
     public IReadOnlyList<IValidationRule> Rules => _rules;

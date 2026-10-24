@@ -160,11 +160,9 @@ public sealed class PhotoAgeRule : IValidationRule
         }
 
         var limit = $"не более {profile.MaxPhotoAgeMonths} мес.";
+        // Without a capture date in the metadata there is nothing to measure, so nothing is reported.
         if (capture.TakenAt is not { } taken)
         {
-            yield return new ValidationIssue(Id, ValidationStatus.ManualReview, "Возраст фотографии",
-                $"Дата съёмки не найдена в метаданных. Убедитесь сами, что фото сделано {limit} назад.")
-            { Category = ValidationCategory.Visual };
             yield break;
         }
 

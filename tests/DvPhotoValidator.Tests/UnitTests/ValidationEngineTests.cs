@@ -82,8 +82,7 @@ public class ValidationEngineTests
         Assert.False(report.HasFailures);
         Assert.Equal(ValidationStatus.Pass, report.Issues.Single(i => i.RuleId == HeadGeometryValidator.HeadHeightId).Status);
         Assert.Equal(ValidationStatus.Pass, report.Issues.Single(i => i.RuleId == HeadGeometryValidator.EyeHeightId).Status);
-        // Not-yet-automated visual checks keep the visual status at ManualReview instead of a false "all clear".
-        Assert.Equal(ValidationStatus.ManualReview, report.VisualStatus);
+        Assert.Equal(ValidationStatus.Pass, report.VisualStatus);
     }
 
     [Fact]
@@ -123,11 +122,9 @@ public class ValidationEngineTests
     }
 
     [Fact]
-    public void PhotoAge_UnknownDate_RequiresManualReview()
+    public void PhotoAge_UnknownDate_IsNotReported()
     {
-        var issue = new PhotoAgeRule().Evaluate(new ValidationContext { Capture = new CaptureDateInfo(null) }, RuleProfile.Baseline).Single();
-
-        Assert.Equal(ValidationStatus.ManualReview, issue.Status);
+        Assert.Empty(new PhotoAgeRule().Evaluate(new ValidationContext { Capture = new CaptureDateInfo(null) }, RuleProfile.Baseline));
     }
 
     [Fact]

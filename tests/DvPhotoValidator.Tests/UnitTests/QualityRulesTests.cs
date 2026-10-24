@@ -38,8 +38,8 @@ public class QualityRulesTests
             Assert.Equal(ValidationStatus.Pass, StatusOf(issues, id));
         }
 
-        // Glasses absence cannot be proven by the heuristic.
-        Assert.Equal(ValidationStatus.ManualReview, StatusOf(issues, "GLASSES"));
+        // Glasses are reported only when signs of a frame are found.
+        Assert.DoesNotContain(issues, i => i.RuleId == "GLASSES");
         Assert.All(issues, i => Assert.Equal(ValidationCategory.Visual, i.Category));
     }
 
@@ -97,29 +97,16 @@ public class QualityRulesTests
     }
 
     [Fact]
-    public void ManualChecklist_KeepsOnlyNonAutomatedItems_WhenQualityIsKnown()
-    {
-        var withQuality = Run(Good).Where(i => i.RuleId.EndsWith("_MANUAL")).Select(i => i.RuleId).ToList();
-        var withoutQuality = ValidationEngine.CreateDefault()
-            .Run(new ValidationContext { Crop = new CropRect(0, 0, 1000) }, RuleProfile.Baseline)
-            .Issues.Where(i => i.RuleId.EndsWith("_MANUAL")).ToList();
-
-        Assert.Equal(["EXPRESSION_MANUAL", "HEADWEAR_MANUAL"], withQuality);
-        Assert.Equal(7, withoutQuality.Count);
-    }
-
-    [Fact]
     public void Confirmation_TurnsManualReviewIntoPass_ButNeverOverridesWarningsOrFails()
     {
-        var bad = Good with { Sharpness = new SharpnessMeasurement(5) };
-        var issues = Run(bad, new HashSet<string> { "GLASSES", "EXPRESSION_MANUAL", "SHARPNESS" });
+        var bad = Good with { Sharpness = new SharpnessMeasurement(5), Eyes = new EyesMeasurement(0.07, 0.15, 30, 30) };
+        var issues = Run(bad, new HashSet<string> { "EYES_OPEN", "SHARPNESS" });
 
-        var glasses = issues.Single(i => i.RuleId == "GLASSES");
-        Assert.Equal(ValidationStatus.Pass, glasses.Status);
-        Assert.True(glasses.ConfirmedByUser);
-        Assert.True(glasses.CanConfirm);
-        Assert.StartsWith("Подтверждено вами", glasses.Description);
-        Assert.Equal(ValidationStatus.Pass, StatusOf(issues, "EXPRESSION_MANUAL"));
+        var eyes = issues.Single(i => i.RuleId == "EYES_OPEN");
+        Assert.Equal(ValidationStatus.Pass, eyes.Status);
+        Assert.True(eyes.ConfirmedByUser);
+        Assert.True(eyes.CanConfirm);
+        Assert.StartsWith("Подтверждено вами", eyes.Description);
         Assert.Equal(ValidationStatus.Warning, StatusOf(issues, "SHARPNESS"));
     }
 
