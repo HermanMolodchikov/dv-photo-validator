@@ -22,7 +22,7 @@ try {
     Get-ChildItem $out -Filter *.lib | Remove-Item
 
     $docs = New-Item -ItemType Directory -Force (Join-Path $out "docs")
-    Copy-Item README.md, THIRD-PARTY.md $out
+    Copy-Item README.md, LICENSE, THIRD-PARTY.md $out
     Copy-Item docs\user-guide.md, docs\rules-update.md, docs\algorithms.md, docs\report-examples.md $docs
 
     $zip = Join-Path $root "dist\$name.zip"

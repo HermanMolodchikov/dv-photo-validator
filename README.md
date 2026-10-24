@@ -71,3 +71,7 @@ DvPhotoValidator.sln
 - [docs/report-examples.md](docs/report-examples.md) — примеры отчётов проверки
 - [docs/rules-update.md](docs/rules-update.md) — как обновить требования DV на новый год
 - [THIRD-PARTY.md](THIRD-PARTY.md) — зависимости и лицензии
+
+## Лицензия
+
+[MIT](LICENSE) © 2026 German Molodchikov. Лицензии сторонних компонентов перечислены в [THIRD-PARTY.md](THIRD-PARTY.md).
