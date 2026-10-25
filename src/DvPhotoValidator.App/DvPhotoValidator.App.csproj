@@ -6,7 +6,12 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>DvPhotoValidator</AssemblyName>
     <RootNamespace>DvPhotoValidator.App</RootNamespace>
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DvPhotoValidator.Vision\DvPhotoValidator.Vision.csproj" />

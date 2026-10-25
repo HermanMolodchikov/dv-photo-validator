@@ -1,3 +1,5 @@
+<p align="center"><img src="branding/logo-256.png" width="128" alt="DV Photo Validator"></p>
+
 # DV Photo Validator
 
 Настольное приложение для Windows 10/11 (x64). Оно помогает подготовить фотографию для Diversity Visa (DV Lottery): открыть фото, вручную кадрировать его в квадрат, отметить ориентиры головы, проверить измеримые параметры и сохранить JPEG 600×600 размером до 240 КиБ.

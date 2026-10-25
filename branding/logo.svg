@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>DV Photo Validator</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2F7FE0"/><stop offset="1" stop-color="#1A5FB4"/></linearGradient></defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M 96 180 L 96 96 L 180 96" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 332 96 L 416 96 L 416 180" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96 332 L 96 416 L 180 416" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 192 214 A 64 64 0 1 0 320 214 A 64 64 0 1 0 192 214 Z" fill="#FFFFFF"/>
+  <path d="M 148 402 C 148 326 198 296 256 296 C 314 296 364 326 364 402 Z" fill="#FFFFFF"/>
+  <path d="M 310 394 A 84 84 0 1 0 478 394 A 84 84 0 1 0 310 394 Z" fill="#2EB872" stroke="#1A5FB4" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 352 396 L 382 426 L 438 368" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
